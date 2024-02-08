@@ -1,3 +1,5 @@
+// Package lexer provides a type for scanning an io.Reader for token.Token values. It reports syntax errors
+// while scanning.
 package lexer
 
 import (
@@ -5,38 +7,41 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"unicode"
 
 	"github.com/halimath/calc/token"
 )
 
+// ErrLexer is returned when the lexer hits invalid input.
 var ErrLexer = errors.New("lexer error")
 
+// Lexer implements scanning an io.Reader for tokens.
 type Lexer struct {
 	r     bufio.Reader
 	value strings.Builder
 }
 
+// New creates a new Lexer consuming input from r.
 func New(r io.Reader) *Lexer {
-	return &Lexer{
+	l := Lexer{
 		r: *bufio.NewReader(r),
 	}
+	return &l
 }
 
-func (l *Lexer) Next() (tok token.Token, err error) {
-	l.value.Reset()
-	var r rune
-
+// Next consumes the next token from l and returns it. If no more tokens are available, the returned token
+// is nil and io.EOF is returned as the error. In any other non-nil value represents an scanning error.
+func (l *Lexer) Next() (token.Token, error) {
 	for {
-		r, _, err = l.r.ReadRune()
+		r, _, err := l.r.ReadRune()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				return l.consumeNumberOrErr(io.EOF)
+				return l.consumeNumber(io.EOF)
 			}
 
-			err = fmt.Errorf("%w: %v", ErrLexer, err)
-			return
+			return nil, fmt.Errorf("%w: %v", ErrLexer, err)
 		}
 
 		if unicode.IsSpace(r) {
@@ -46,7 +51,7 @@ func (l *Lexer) Next() (tok token.Token, err error) {
 			}
 
 			// Otherwise sb must contain digits, so it must be a number
-			return l.consumeNumberOrErr(ErrLexer)
+			return l.consumeNumber(ErrLexer)
 		}
 
 		// If r is a digit or a dot, append it to the buffer and continue consuming runes
@@ -58,58 +63,44 @@ func (l *Lexer) Next() (tok token.Token, err error) {
 		if l.value.Len() > 0 {
 			// If so, unread r and return a number
 			if err = l.r.UnreadRune(); err != nil {
-				err = fmt.Errorf("%w: %v", ErrLexer, err)
-				return
+				return nil, fmt.Errorf("%w: %v", ErrLexer, err)
 			}
 
-			return l.consumeNumberOrErr(ErrLexer)
+			return l.consumeNumber(ErrLexer)
 		}
-
-		l.value.WriteRune(r)
-		tok.Value = l.value.String()
 
 		switch r {
 		case '+':
-			tok.Type = token.Add
+			return token.Add, nil
 		case '-':
-			tok.Type = token.Sub
+			return token.Sub, nil
 		case '*':
-			tok.Type = token.Mul
+			return token.Mul, nil
 		case '/':
-			tok.Type = token.Div
+			return token.Div, nil
 		case '(':
-			tok.Type = token.LParen
+			return token.LParen, nil
 		case ')':
-			tok.Type = token.RParen
+			return token.RParen, nil
 		default:
-			return token.Token{}, fmt.Errorf("%w: invalid input rune: %c", ErrLexer, r)
+			return nil, fmt.Errorf("%w: invalid input rune: %c", ErrLexer, r)
 		}
-
-		return
 	}
 }
 
-func (l *Lexer) consumeNumberOrErr(errToReturn error) (tok token.Token, err error) {
-	var ok bool
-
-	tok, ok = l.consumeNumber()
-	if !ok {
-		err = errToReturn
-	}
-
-	return
-}
-
-func (l *Lexer) consumeNumber() (tok token.Token, ok bool) {
+func (l *Lexer) consumeNumber(errToReturn error) (token.Token, error) {
 	if l.value.Len() == 0 {
-		return
+		return nil, errToReturn
 	}
 
-	tok.Type = token.Number
-	tok.Value = l.value.String()
-	ok = true
+	val, err := strconv.ParseFloat(l.value.String(), 64)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrLexer, err)
+	}
+
+	tok := token.Number(val)
 
 	l.value.Reset()
 
-	return
+	return tok, nil
 }

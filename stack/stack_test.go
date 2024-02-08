@@ -19,11 +19,11 @@ func TestStack(t *testing.T) {
 	s.Push(3)
 	expect.That(t, is.EqualTo(len(s), 3))
 
-	vp := s.Peek()
-	expect.That(t, is.EqualTo(*vp, 3))
+	v := s.Peek()
+	expect.That(t, is.EqualTo(v, 3))
 	expect.That(t, is.EqualTo(len(s), 3))
 
-	v := s.Pop()
+	v = s.Pop()
 	expect.That(t, is.EqualTo(v, 3))
 	expect.That(t, is.EqualTo(len(s), 2))
 

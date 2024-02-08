@@ -1,8 +1,10 @@
 package lexer
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -22,32 +24,32 @@ func TestLexer(t *testing.T) {
 		{in: ""},
 		{in: "abc", err: ErrLexer},
 		{in: "  2.3", want: []token.Token{
-			{Type: token.Number, Value: "2.3"},
+			token.Number(2.3),
 		}},
 		{in: "+", want: []token.Token{
-			{Type: token.Add, Value: "+"},
+			token.Add,
 		}},
 		{in: "-", want: []token.Token{
-			{Type: token.Sub, Value: "-"},
+			token.Sub,
 		}},
 		{in: "*", want: []token.Token{
-			{Type: token.Mul, Value: "*"},
+			token.Mul,
 		}},
 		{in: "/", want: []token.Token{
-			{Type: token.Div, Value: "/"},
+			token.Div,
 		}},
 		{in: "(", want: []token.Token{
-			{Type: token.LParen, Value: "("},
+			token.LParen,
 		}},
 		{in: ")", want: []token.Token{
-			{Type: token.RParen, Value: ")"},
+			token.RParen,
 		}},
 		{in: "2+3*4", want: []token.Token{
-			{Type: token.Number, Value: "2"},
-			{Type: token.Add, Value: "+"},
-			{Type: token.Number, Value: "3"},
-			{Type: token.Mul, Value: "*"},
-			{Type: token.Number, Value: "4"},
+			token.Number(2),
+			token.Add,
+			token.Number(3),
+			token.Mul,
+			token.Number(4),
 		}},
 	}
 
@@ -76,5 +78,20 @@ func consumeAll(l *Lexer) (toks []token.Token, err error) {
 		}
 
 		toks = append(toks, t)
+	}
+}
+
+func BenchmarkLexer(b *testing.B) {
+	content, err := os.ReadFile("../testdata/10m")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_, err := consumeAll(New(bytes.NewReader(content)))
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }

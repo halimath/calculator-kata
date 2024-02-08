@@ -43,26 +43,26 @@ func (rpn *RPN) Next() (token.Token, error) {
 			return rpn.out.Shift(), nil
 		}
 
-		return token.Token{}, io.EOF
+		return nil, io.EOF
 	}
 
-	if tok.Type == token.Number {
+	if _, ok := tok.(token.Number); ok {
 		return tok, nil
 	}
 
-	if tok.Type == token.LParen {
+	if tok == token.LParen {
 		rpn.operators.Push(tok)
 		return rpn.Next()
 	}
 
-	if tok.Type == token.RParen {
+	if tok == token.RParen {
 		for {
 			if rpn.operators.Empty() {
-				return token.Token{}, fmt.Errorf("unbalanced parenthesis")
+				return nil, fmt.Errorf("unbalanced parenthesis")
 			}
 
 			tok = rpn.operators.Pop()
-			if tok.Type == token.LParen {
+			if tok == token.LParen {
 				break
 			}
 
@@ -72,10 +72,10 @@ func (rpn *RPN) Next() (token.Token, error) {
 		return rpn.Next()
 	}
 
-	if token.IsOperator(tok) {
+	if _, ok := tok.(token.Operator); ok {
 		for !rpn.operators.Empty() {
 			top := rpn.operators.Peek()
-			if precedence(*top) < precedence(tok) || top.Type == token.LParen {
+			if precedence(top) < precedence(tok) || top == token.LParen {
 				break
 			}
 			rpn.out.Push(rpn.operators.Pop())
@@ -88,9 +88,7 @@ func (rpn *RPN) Next() (token.Token, error) {
 }
 
 func precedence(t token.Token) int {
-	switch t.Type {
-	case token.Number:
-		return 0
+	switch t {
 	case token.Add, token.Sub:
 		return 1
 	case token.Mul, token.Div:
@@ -98,6 +96,6 @@ func precedence(t token.Token) int {
 	case token.LParen, token.RParen:
 		return 3
 	default:
-		panic(fmt.Sprintf("unknown token type: %d", t.Type))
+		return 0
 	}
 }
