@@ -17,10 +17,17 @@ func TestEval(t *testing.T) {
 
 	tests := []testCase{
 		{in: "2+3", want: 5},
+		{in: "2/3", want: 2.0 / 3.0},
 		{in: "2+3+4", want: 9},
 		{in: "2+3*4", want: 14},
 		{in: "2+3*4-5", want: 9},
 		{in: "2+3*(4-5)", want: -1},
+
+		{in: "", want: 0, err: ErrEmptyStack},
+		{in: "2+", want: 0, err: ErrEmptyStack},
+		{in: "2/0", want: 0, err: ErrDivisionByZero},
+		{in: "abc", want: 0, err: ErrInvalidInput},
+		{in: "2.3.", want: 0, err: ErrInvalidInput},
 	}
 
 	for _, test := range tests {

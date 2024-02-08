@@ -12,6 +12,12 @@ import (
 	"github.com/halimath/calc/token"
 )
 
+var (
+	ErrInvalidInput   = errors.New("invalid input")
+	ErrEmptyStack     = errors.New("empty stack")
+	ErrDivisionByZero = errors.New("division by zero")
+)
+
 func Eval(r io.Reader) (float64, error) {
 	operands := make(stack.Stack[float64], 0, 64)
 
@@ -23,13 +29,13 @@ func Eval(r io.Reader) (float64, error) {
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			return 0, err
+			return 0, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 		}
 
 		if tok.Type == token.Number {
 			val, err := strconv.ParseFloat(tok.Value, 64)
 			if err != nil {
-				return 0, err
+				return 0, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 			}
 			operands.Push(val)
 			continue
@@ -37,7 +43,7 @@ func Eval(r io.Reader) (float64, error) {
 
 		if token.IsOperator(tok) {
 			if len(operands) < 2 {
-				return 0, fmt.Errorf("empty stack")
+				return 0, ErrEmptyStack
 			}
 
 			l := operands.Pop()
@@ -52,7 +58,7 @@ func Eval(r io.Reader) (float64, error) {
 				operands.Push(r * l)
 			case token.Div:
 				if l == 0 {
-					return 0, fmt.Errorf("division by zero")
+					return 0, ErrDivisionByZero
 				}
 				operands.Push(r / l)
 			}
@@ -60,11 +66,11 @@ func Eval(r io.Reader) (float64, error) {
 			continue
 		}
 
-		return 0, fmt.Errorf("unexpected token: %v", tok)
+		return 0, fmt.Errorf("%w: unexpected token: %v", ErrInvalidInput, tok)
 	}
 
 	if operands.Empty() {
-		return 0, fmt.Errorf("empty stack")
+		return 0, ErrEmptyStack
 	}
 
 	return operands.Pop(), nil

@@ -20,6 +20,7 @@ func TestLexer(t *testing.T) {
 
 	tests := []testCase{
 		{in: ""},
+		{in: "abc", err: ErrLexer},
 		{in: "  2.3", want: []token.Token{
 			{Type: token.Number, Value: "2.3"},
 		}},

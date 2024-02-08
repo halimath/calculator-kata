@@ -55,7 +55,6 @@ func (l *Lexer) Next() (tok token.Token, err error) {
 			continue
 		}
 
-		// Otherwise, r is either an operator or a parenthesis. Check if we have digits consumed so far.
 		if l.value.Len() > 0 {
 			// If so, unread r and return a number
 			if err = l.r.UnreadRune(); err != nil {
@@ -82,6 +81,8 @@ func (l *Lexer) Next() (tok token.Token, err error) {
 			tok.Type = token.LParen
 		case ')':
 			tok.Type = token.RParen
+		default:
+			return token.Token{}, fmt.Errorf("%w: invalid input rune: %c", ErrLexer, r)
 		}
 
 		return
