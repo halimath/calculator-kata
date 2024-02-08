@@ -1,14 +1,28 @@
 # Calculator Kata
 
-Write a calculator that reads an arbitrary complex mathematical term containing
-floating point number, +, -, * and / as well as parenthesis. Calculate the result.
+Write a calculator that reads mathematical terms containing
+floating point numbers, +, -, * and / as well as parenthesis. 
 
-The calculator should be able to handle arbitrary long terms (i.e. megabytes of
-input) well.
+Calculate the result by applying the "usual" mathematical rules:
+
+* operators are used in _infix notation_: `2 + 3`
+* multiply/div have higher precedence then add/sub
+* parenthesis have higher precedence then operators
+* numbers can contain a mix of integers and floating point numbers
+* calculation should follow mathematical rules, i.e. `2 / 0` is an error and not
+  something like `NaN` or `-Inf`
+
+The calculator should
+
+* calculate the result of a single mathematical expression (no matter how long)
+* print the result in a human readable style
+* report any error and refuse the calculation (error reporting style doesn't matter)
+* handle arbitrary long terms (i.e. tens of megabytes of input) well (i.e. in 
+  terms of memory usage as well as running time)
 
 # Specification of the input language
 
-The calculator processes input that is read as UTF-8 encoded characters. A 
+The calculator processes input that is read as `UTF-8` encoded characters. A 
 formal specification of the input language is defined by the following [EBNF]:
 
 ```ebnf
@@ -29,6 +43,8 @@ digit = "0" | non_zero_digit;
 S = "" | { " " | "\n" | "\t" | "\r" | "\f" | "\b" } ;
 ```
 
+[EBNF]: https://en.wikipedia.org/wiki/Extended_Backus–Naur_form
+
 ## Examples
 
 The following lines are all valid input sequences:
@@ -41,4 +57,8 @@ The following lines are all valid input sequences:
 (21 - 3) * 8
 ```
 
-[EBNF]: https://en.wikipedia.org/wiki/Extended_Backus–Naur_form
+# Testcases
+
+A couple of test files with increasing sizes are provided in [`testdata`](./testdata). The results are
+
+* 
