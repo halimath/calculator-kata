@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 )
 
 var (
@@ -26,7 +26,7 @@ func main() {
 var operators = []byte{'+', '-', '*'}
 
 func generateTerm() int {
-	op := rand.Intn(len(operators))
+	op := rand.IntN(len(operators))
 
 	fmt.Printf(" %c ", operators[op])
 
@@ -49,10 +49,10 @@ func generateParenExpr() int {
 }
 
 func generateNumber() int {
-	numberOfChars := rand.Intn(*maxDigits-1) + 1
+	numberOfChars := rand.IntN(*maxDigits-1) + 1
 
 	for i := 0; i < numberOfChars; i++ {
-		d := rand.Intn(9)
+		d := rand.IntN(9)
 		if i == 0 && d == 0 {
 			d = 1
 		}
@@ -64,9 +64,9 @@ func generateNumber() int {
 		numberOfChars++
 		fmt.Print(".")
 
-		numberOfDecimals := rand.Intn(*maxDecimals-1) + 1
+		numberOfDecimals := rand.IntN(*maxDecimals-1) + 1
 		for i := 0; i < numberOfDecimals; i++ {
-			d := rand.Intn(9)
+			d := rand.IntN(9)
 			fmt.Printf("%c", byte(d)+'0')
 		}
 
