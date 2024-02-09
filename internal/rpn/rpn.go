@@ -1,3 +1,7 @@
+// Package rpn provides a type that converts mathematical expressions in infix notation to revese polish
+// notation (RPN). It implements the [shunting yard algorithm] as defined by Edsger Dijkstra.
+//
+// [sunting yard algorithm]: https://en.wikipedia.org/wiki/Shunting_yard_algorithm
 package rpn
 
 import (
@@ -5,31 +9,35 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/halimath/calc/lexer"
-	"github.com/halimath/calc/stack"
-	"github.com/halimath/calc/token"
+	"github.com/halimath/calc/internal/scanner"
+	"github.com/halimath/calc/internal/stack"
+	"github.com/halimath/calc/internal/token"
 )
 
+// RPN implements a type to consume token.Token from a scanner.Scanner assuming these to be in infix notation
+// and transforms them to reverse plish notation.
 type RPN struct {
-	l         *lexer.Lexer
+	s         *scanner.Scanner
 	out       stack.Stack[token.Token]
 	operators stack.Stack[token.Token]
 }
 
-func New(l *lexer.Lexer) *RPN {
+// New creates a new RPN consuming tokens from s.
+func New(s *scanner.Scanner) *RPN {
 	return &RPN{
-		l:         l,
+		s:         s,
 		out:       make(stack.Stack[token.Token], 0, 64),
 		operators: make(stack.Stack[token.Token], 0, 64),
 	}
 }
 
+// Next yields the next token in RPN or an error. If no more tokens are available it returns io.EOF.
 func (rpn *RPN) Next() (token.Token, error) {
 	if !rpn.out.Empty() {
 		return rpn.out.Shift(), nil
 	}
 
-	tok, err := rpn.l.Next()
+	tok, err := rpn.s.Next()
 	if err != nil {
 		if !errors.Is(err, io.EOF) {
 			return tok, err

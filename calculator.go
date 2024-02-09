@@ -1,4 +1,5 @@
-package calculator
+// Package calc implements an arithmetic calculator for very long mathematical expressions.
+package calc
 
 import (
 	"errors"
@@ -6,10 +7,10 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/halimath/calc/calculator/rpn"
-	"github.com/halimath/calc/lexer"
-	"github.com/halimath/calc/stack"
-	"github.com/halimath/calc/token"
+	"github.com/halimath/calc/internal/rpn"
+	"github.com/halimath/calc/internal/scanner"
+	"github.com/halimath/calc/internal/stack"
+	"github.com/halimath/calc/internal/token"
 )
 
 var (
@@ -18,10 +19,11 @@ var (
 	ErrDivisionByZero = errors.New("division by zero")
 )
 
+// Eval evaluates the expression read from r and returns the result as well as any error.
 func Eval(r io.Reader) (float64, error) {
 	operands := make(stack.Stack[float64], 0, 64)
 
-	rpnConverver := rpn.New(lexer.New(r))
+	rpnConverver := rpn.New(scanner.New(r))
 
 	for {
 		tok, err := rpnConverver.Next()

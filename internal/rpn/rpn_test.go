@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/halimath/calc/lexer"
-	"github.com/halimath/calc/token"
+	"github.com/halimath/calc/internal/scanner"
+	"github.com/halimath/calc/internal/token"
 	"github.com/halimath/expect"
 	"github.com/halimath/expect/is"
 )
@@ -28,7 +28,7 @@ func TestRPN(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := New(lexer.New(strings.NewReader(test.in)))
+		r := New(scanner.New(strings.NewReader(test.in)))
 		got, err := consumeAll(r)
 
 		expect.WithMessage(t, "in: %q", test.in).That(
@@ -56,7 +56,7 @@ func consumeAll(l *RPN) (toks []token.Token, err error) {
 }
 
 func tokenize(s string) (toks []token.Token) {
-	l := lexer.New(strings.NewReader(s))
+	l := scanner.New(strings.NewReader(s))
 
 	for {
 		t, err := l.Next()

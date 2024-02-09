@@ -1,4 +1,4 @@
-package lexer
+package scanner
 
 import (
 	"bytes"
@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/halimath/calc/token"
+	"github.com/halimath/calc/internal/token"
 	"github.com/halimath/expect"
 	"github.com/halimath/expect/is"
 )
 
-func TestLexer(t *testing.T) {
+func TestScanner(t *testing.T) {
 	type testCase struct {
 		in   string
 		want []token.Token
@@ -22,7 +22,7 @@ func TestLexer(t *testing.T) {
 
 	tests := []testCase{
 		{in: ""},
-		{in: "abc", err: ErrLexer},
+		{in: "abc", err: ErrScanFailed},
 		{in: "  2.3", want: []token.Token{
 			token.Number("2.3"),
 		}},
@@ -51,12 +51,19 @@ func TestLexer(t *testing.T) {
 			token.Mul,
 			token.Number("4"),
 		}},
+		{in: "2 + 3 * 4 ", want: []token.Token{
+			token.Number("2"),
+			token.Add,
+			token.Number("3"),
+			token.Mul,
+			token.Number("4"),
+		}},
 	}
 
 	for _, test := range tests {
-		l := New(strings.NewReader(test.in))
+		s := New(strings.NewReader(test.in))
 
-		got, err := consumeAll(l)
+		got, err := consumeAll(s)
 		expect.WithMessage(t, "input: %q", test.in).That(
 			is.Error(err, test.err),
 			is.DeepEqualTo(got, test.want),
@@ -64,10 +71,10 @@ func TestLexer(t *testing.T) {
 	}
 }
 
-func consumeAll(l *Lexer) (toks []token.Token, err error) {
+func consumeAll(s *Scanner) (toks []token.Token, err error) {
 	var t token.Token
 	for {
-		t, err = l.Next()
+		t, err = s.Next()
 		if errors.Is(err, io.EOF) {
 			err = nil
 			return
@@ -81,7 +88,7 @@ func consumeAll(l *Lexer) (toks []token.Token, err error) {
 	}
 }
 
-func BenchmarkLexer(b *testing.B) {
+func BenchmarkScanner(b *testing.B) {
 	content, err := os.ReadFile("../testdata/10m")
 	if err != nil {
 		b.Fatal(err)
