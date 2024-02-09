@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/halimath/calc/calculator/rpn"
 	"github.com/halimath/calc/lexer"
@@ -32,6 +33,11 @@ func Eval(r io.Reader) (float64, error) {
 		}
 
 		if val, ok := tok.(token.Number); ok {
+			val, err := strconv.ParseFloat(string(val), 64)
+			if err != nil {
+				return 0, fmt.Errorf("%w: %v", ErrInvalidInput, err)
+			}
+
 			operands.Push(float64(val))
 			continue
 		}

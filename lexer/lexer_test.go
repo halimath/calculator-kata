@@ -24,7 +24,7 @@ func TestLexer(t *testing.T) {
 		{in: ""},
 		{in: "abc", err: ErrLexer},
 		{in: "  2.3", want: []token.Token{
-			token.Number(2.3),
+			token.Number("2.3"),
 		}},
 		{in: "+", want: []token.Token{
 			token.Add,
@@ -45,11 +45,11 @@ func TestLexer(t *testing.T) {
 			token.RParen,
 		}},
 		{in: "2+3*4", want: []token.Token{
-			token.Number(2),
+			token.Number("2"),
 			token.Add,
-			token.Number(3),
+			token.Number("3"),
 			token.Mul,
-			token.Number(4),
+			token.Number("4"),
 		}},
 	}
 

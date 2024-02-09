@@ -63,8 +63,8 @@ func (p Paren) String() string {
 }
 
 // Number defines a type of Token that represents a number literal.
-type Number float64
+type Number string
 
 func (Number) tok() {}
 
-func (n Number) String() string { return fmt.Sprintf("%f", n) }
+func (n Number) String() string { return string(n) }

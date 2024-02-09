@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 	"unicode"
 
@@ -93,12 +92,7 @@ func (l *Lexer) consumeNumber(errToReturn error) (token.Token, error) {
 		return nil, errToReturn
 	}
 
-	val, err := strconv.ParseFloat(l.value.String(), 64)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrLexer, err)
-	}
-
-	tok := token.Number(val)
+	tok := token.Number(l.value.String())
 
 	l.value.Reset()
 
