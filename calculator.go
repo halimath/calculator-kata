@@ -4,77 +4,67 @@ package calc
 import (
 	"errors"
 	"fmt"
-	"io"
 	"strconv"
 
-	"github.com/halimath/calc/internal/rpn"
+	"io"
+
+	"github.com/halimath/calc/internal/ast"
+	"github.com/halimath/calc/internal/parser"
 	"github.com/halimath/calc/internal/scanner"
-	"github.com/halimath/calc/internal/stack"
-	"github.com/halimath/calc/internal/token"
 )
 
 var (
 	ErrInvalidInput   = errors.New("invalid input")
-	ErrEmptyStack     = errors.New("empty stack")
 	ErrDivisionByZero = errors.New("division by zero")
 )
 
 // Eval evaluates the expression read from r and returns the result as well as any error.
 func Eval(r io.Reader) (float64, error) {
-	operands := make(stack.Stack[float64], 0, 64)
+	node, err := parser.New(scanner.New(r)).Expr()
+	if err != nil {
+		return 0, fmt.Errorf("%w: parsing error: %v", ErrInvalidInput, err)
+	}
 
-	rpnConverver := rpn.New(scanner.New(r))
+	return eval(node)
+}
 
-	for {
-		tok, err := rpnConverver.Next()
+func eval(node ast.Node) (float64, error) {
+	switch n := node.(type) {
+	case ast.Number:
+		v, err := strconv.ParseFloat(n.Value, 64)
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
 			return 0, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 		}
+		return v, nil
 
-		if val, ok := tok.(token.Number); ok {
-			val, err := strconv.ParseFloat(string(val), 64)
-			if err != nil {
-				return 0, fmt.Errorf("%w: %v", ErrInvalidInput, err)
-			}
-
-			operands.Push(float64(val))
-			continue
+	case ast.Operator:
+		l, err := eval(n.L)
+		if err != nil {
+			return 0, err
 		}
 
-		if _, ok := tok.(token.Operator); ok {
-			if len(operands) < 2 {
-				return 0, ErrEmptyStack
-			}
-
-			l := operands.Pop()
-			r := operands.Pop()
-
-			switch tok {
-			case token.Add:
-				operands.Push(r + l)
-			case token.Sub:
-				operands.Push(r - l)
-			case token.Mul:
-				operands.Push(r * l)
-			case token.Div:
-				if l == 0 {
-					return 0, ErrDivisionByZero
-				}
-				operands.Push(r / l)
-			}
-
-			continue
+		r, err := eval(n.R)
+		if err != nil {
+			return 0, err
 		}
 
-		return 0, fmt.Errorf("%w: unexpected token: %v", ErrInvalidInput, tok)
+		switch n.Op {
+		case ast.Add:
+			return l + r, nil
+		case ast.Sub:
+			return l - r, nil
+		case ast.Mul:
+			return l * r, nil
+		case ast.Div:
+			if r == 0 {
+				return 0, ErrDivisionByZero
+			}
+			return l / r, nil
+		default:
+			return 0, fmt.Errorf("%w: unexpected operator: %v", ErrInvalidInput, n.Op)
+		}
+	default:
+		return 0, fmt.Errorf("%w: unexpected ast node: %v", ErrInvalidInput, node)
 	}
 
-	if operands.Empty() {
-		return 0, ErrEmptyStack
-	}
-
-	return operands.Pop(), nil
 }

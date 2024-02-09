@@ -23,8 +23,8 @@ func TestEval(t *testing.T) {
 		{in: "2+3*4-5", want: 9},
 		{in: "2+3*(4-5)", want: -1},
 
-		{in: "", want: 0, err: ErrEmptyStack},
-		{in: "2+", want: 0, err: ErrEmptyStack},
+		{in: "", want: 0, err: ErrInvalidInput},
+		{in: "2+", want: 0, err: ErrInvalidInput},
 		{in: "2/0", want: 0, err: ErrDivisionByZero},
 		{in: "abc", want: 0, err: ErrInvalidInput},
 		{in: "2.3.", want: 0, err: ErrInvalidInput},
