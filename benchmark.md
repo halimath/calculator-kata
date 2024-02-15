@@ -1,21 +1,45 @@
 # Benchmark Results
 
+# Language Comparison
+
+These benchmark results compare the performance of a Go(lang) and Rust implementation
+using the same implementation strategy (reading the input in chunks, scanning for
+tokens, transforming the token stream to reverse-polish-notation, evaluating the
+NPM stream using a stack based evaluator).
+
+The results are obtained from running the resulting binaries (produced with
+optimizations applied) and using the standard unix `time` tool to generate
+insights.
+
+Lang | Real time [s] | User time [s] | Max. resident set size [bytes] | Peak memory footprint [bytes]
+-- | --: | --: | --: | --:
+Go | 0.28 | 0.27 | 9,895,936 | 8,684,352
+Rust | 0.15 | 0.15 | 1,409,024 | 967,168
+
+# Go Implementation Benchmarks
+
 All benchmarks have been run on a 2021 MacBook using a M1 pro Apple Silicon
 processor with 16Gb ram using go 1.22.0.
 
-# Implementation Strategies
+## Implementation Strategies
 
 The results compare different implementation strategies:
 
-# Results
+## Results
 
 Strategy | Test | Avg. duration | Avg. bytes/op | Avg. allocs/op
 -- | -- | --: | --: | --:
-RPN w/ Token struct | Simple | 1,938 ns/op | 7976 | 22
-RPN w/ Token struct | 1k |  24,578 ns/op | 12464 | 394
-RPN w/ Token struct | 10k | 258,822 ns/op | 71600 | 4,591
-RPN w/ Token struct | 1m | 25,602,550 ns/op | 6731522 | 481,991
-RPN w/ Token struct | 10m | 249,842,958 ns/op | 67243596 | 4,816,630
+RPN w/ Token struct (string value) | Simple | 1,938 ns/op | 7,976 | 22
+RPN w/ Token struct (string value) | 1k |  24,578 ns/op | 12,464 | 394
+RPN w/ Token struct (string value) | 10k | 258,822 ns/op | 71,600 | 4,591
+RPN w/ Token struct (string value) | 1m | 25,602,550 ns/op | 6,731,522 | 481,991
+RPN w/ Token struct (string value) | 10m | 249,842,958 ns/op | 67,243,596 | 4,816,630
+| | | | 
+RPN w/ Token struct (float64 value) | Simple | 1,663 ns/op | 6,888 | 14
+RPN w/ Token struct (float64 value) | 1k |  18,877 ns/op | 9,336 | 223
+RPN w/ Token struct (float64 value) | 10k | 189,297 ns/op | 43,216 | 2,737
+RPN w/ Token struct (float64 value) | 1m | 19,423,377 ns/op | 38,008,740 | 283,417
+RPN w/ Token struct (float64 value) | 10m | 193,736,326 ns/op | 38,042,613 | 2,834,386
 | | | | 
 RPN w/ Token pointer + obj pool | Simple | 2,039 ns/op | 6,128 | 36
 RPN w/ Token pointer + obj pool | 1k |  30,775 ns/op | 13,064 | 702
