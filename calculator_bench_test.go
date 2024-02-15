@@ -26,19 +26,19 @@ func BenchmarkSimple(b *testing.B) {
 }
 
 func Benchmark1k(b *testing.B) {
-	benchmarkFile("../testdata/1k", b)
+	benchmarkFile("./testdata/1k", b)
 }
 
 func Benchmark10k(b *testing.B) {
-	benchmarkFile("../testdata/10k", b)
+	benchmarkFile("./testdata/10k", b)
 }
 
 func Benchmark1m(b *testing.B) {
-	benchmarkFile("../testdata/1m", b)
+	benchmarkFile("./testdata/1m", b)
 }
 
 func Benchmark10m(b *testing.B) {
-	benchmarkFile("../testdata/10m", b)
+	benchmarkFile("./testdata/10m", b)
 }
 
 func benchmarkFile(filename string, b *testing.B) {

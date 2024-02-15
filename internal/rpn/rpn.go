@@ -51,26 +51,26 @@ func (rpn *RPN) Next() (token.Token, error) {
 			return rpn.out.Shift(), nil
 		}
 
-		return nil, io.EOF
+		return token.Token{}, io.EOF
 	}
 
-	if _, ok := tok.(token.Number); ok {
+	if tok.Type == token.Number {
 		return tok, nil
 	}
 
-	if tok == token.LParen {
+	if tok.Type == token.LParen {
 		rpn.operators.Push(tok)
 		return rpn.Next()
 	}
 
-	if tok == token.RParen {
+	if tok.Type == token.RParen {
 		for {
 			if rpn.operators.Empty() {
-				return nil, fmt.Errorf("unbalanced parenthesis")
+				return token.Token{}, fmt.Errorf("unbalanced parenthesis")
 			}
 
 			tok = rpn.operators.Pop()
-			if tok == token.LParen {
+			if tok.Type == token.LParen {
 				break
 			}
 
@@ -80,10 +80,10 @@ func (rpn *RPN) Next() (token.Token, error) {
 		return rpn.Next()
 	}
 
-	if _, ok := tok.(token.Operator); ok {
+	if token.IsOperator(tok) {
 		for !rpn.operators.Empty() {
 			top := rpn.operators.Peek()
-			if precedence(top) < precedence(tok) || top == token.LParen {
+			if precedence(top) < precedence(tok) || top.Type == token.LParen {
 				break
 			}
 			rpn.out.Push(rpn.operators.Pop())
@@ -96,7 +96,7 @@ func (rpn *RPN) Next() (token.Token, error) {
 }
 
 func precedence(t token.Token) int {
-	switch t {
+	switch t.Type {
 	case token.Add, token.Sub:
 		return 1
 	case token.Mul, token.Div:

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -40,7 +41,7 @@ func (s *Scanner) Next() (token.Token, error) {
 				return s.consumeNumber(io.EOF)
 			}
 
-			return nil, fmt.Errorf("%w: %v", ErrScanFailed, err)
+			return token.Token{}, fmt.Errorf("%w: %v", ErrScanFailed, err)
 		}
 
 		if unicode.IsSpace(r) {
@@ -62,7 +63,7 @@ func (s *Scanner) Next() (token.Token, error) {
 		if s.value.Len() > 0 {
 			// If so, unread r and return a number
 			if err = s.r.UnreadRune(); err != nil {
-				return nil, fmt.Errorf("%w: %v", ErrScanFailed, err)
+				return token.Token{}, fmt.Errorf("%w: %v", ErrScanFailed, err)
 			}
 
 			return s.consumeNumber(ErrScanFailed)
@@ -70,31 +71,34 @@ func (s *Scanner) Next() (token.Token, error) {
 
 		switch r {
 		case '+':
-			return token.Add, nil
+			return token.Token{Type: token.Add}, nil
 		case '-':
-			return token.Sub, nil
+			return token.Token{Type: token.Sub}, nil
 		case '*':
-			return token.Mul, nil
+			return token.Token{Type: token.Mul}, nil
 		case '/':
-			return token.Div, nil
+			return token.Token{Type: token.Div}, nil
 		case '(':
-			return token.LParen, nil
+			return token.Token{Type: token.LParen}, nil
 		case ')':
-			return token.RParen, nil
+			return token.Token{Type: token.RParen}, nil
 		default:
-			return nil, fmt.Errorf("%w: invalid input rune: %c", ErrScanFailed, r)
+			return token.Token{}, fmt.Errorf("%w: invalid input rune: %c", ErrScanFailed, r)
 		}
 	}
 }
 
 func (s *Scanner) consumeNumber(errToReturn error) (token.Token, error) {
 	if s.value.Len() == 0 {
-		return nil, errToReturn
+		return token.Token{}, errToReturn
 	}
 
-	tok := token.Number(s.value.String())
+	val, err := strconv.ParseFloat(s.value.String(), 64)
+	if err != nil {
+		return token.Token{}, fmt.Errorf("%w: %v", ErrScanFailed, err)
+	}
 
 	s.value.Reset()
 
-	return tok, nil
+	return token.Token{Type: token.Number, Value: val}, nil
 }

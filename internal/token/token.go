@@ -6,28 +6,25 @@ import (
 	"fmt"
 )
 
-// Token defines the interface for tokens. Only types contained in this package
-// may satisfy the Token interface.
-type Token interface {
-	String() string
-	tok()
-}
-
-// Operator defines a type of Token that represents a binary operator in the
-// input language.
-type Operator int
+type Type int
 
 const (
-	Add Operator = iota + 1
+	Number Type = iota + 1
+	Add
 	Sub
 	Mul
 	Div
+	LParen
+	RParen
 )
 
-func (Operator) tok() {}
+type Token struct {
+	Type  Type
+	Value float64
+}
 
-func (o Operator) String() string {
-	switch o {
+func (t Token) String() string {
+	switch t.Type {
 	case Add:
 		return "+"
 	case Sub:
@@ -36,35 +33,17 @@ func (o Operator) String() string {
 		return "*"
 	case Div:
 		return "/"
-	default:
-		panic(fmt.Sprintf("unknown operator: %d", int(o)))
-	}
-}
-
-// Paren defines a type of Token that represents either a left of right parenthesis.
-type Paren int
-
-const (
-	LParen Paren = iota + 1
-	RParen
-)
-
-func (Paren) tok() {}
-
-func (p Paren) String() string {
-	switch p {
 	case LParen:
 		return "("
 	case RParen:
 		return ")"
+	case Number:
+		return fmt.Sprintf("%.4f", t.Value)
 	default:
-		panic(fmt.Sprintf("unknown paren: %d", int(p)))
+		panic(fmt.Sprintf("unknown operator: %v", t.Type))
 	}
 }
 
-// Number defines a type of Token that represents a number literal.
-type Number string
-
-func (Number) tok() {}
-
-func (n Number) String() string { return string(n) }
+func IsOperator(t Token) bool {
+	return t.Type == Add || t.Type == Sub || t.Type == Mul || t.Type == Div
+}

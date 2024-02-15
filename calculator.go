@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 
 	"github.com/halimath/calc/internal/rpn"
 	"github.com/halimath/calc/internal/scanner"
@@ -34,17 +33,12 @@ func Eval(r io.Reader) (float64, error) {
 			return 0, fmt.Errorf("%w: %v", ErrInvalidInput, err)
 		}
 
-		if val, ok := tok.(token.Number); ok {
-			val, err := strconv.ParseFloat(string(val), 64)
-			if err != nil {
-				return 0, fmt.Errorf("%w: %v", ErrInvalidInput, err)
-			}
-
-			operands.Push(float64(val))
+		if tok.Type == token.Number {
+			operands.Push(tok.Value)
 			continue
 		}
 
-		if _, ok := tok.(token.Operator); ok {
+		if token.IsOperator(tok) {
 			if len(operands) < 2 {
 				return 0, ErrEmptyStack
 			}
@@ -52,7 +46,7 @@ func Eval(r io.Reader) (float64, error) {
 			l := operands.Pop()
 			r := operands.Pop()
 
-			switch tok {
+			switch tok.Type {
 			case token.Add:
 				operands.Push(r + l)
 			case token.Sub:

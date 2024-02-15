@@ -24,39 +24,39 @@ func TestScanner(t *testing.T) {
 		{in: ""},
 		{in: "abc", err: ErrScanFailed},
 		{in: "  2.3", want: []token.Token{
-			token.Number("2.3"),
+			{Type: token.Number, Value: 2.3},
 		}},
 		{in: "+", want: []token.Token{
-			token.Add,
+			{Type: token.Add},
 		}},
 		{in: "-", want: []token.Token{
-			token.Sub,
+			{Type: token.Sub},
 		}},
 		{in: "*", want: []token.Token{
-			token.Mul,
+			{Type: token.Mul},
 		}},
 		{in: "/", want: []token.Token{
-			token.Div,
+			{Type: token.Div},
 		}},
 		{in: "(", want: []token.Token{
-			token.LParen,
+			{Type: token.LParen},
 		}},
 		{in: ")", want: []token.Token{
-			token.RParen,
+			{Type: token.RParen},
 		}},
 		{in: "2+3*4", want: []token.Token{
-			token.Number("2"),
-			token.Add,
-			token.Number("3"),
-			token.Mul,
-			token.Number("4"),
+			{Type: token.Number, Value: 2},
+			{Type: token.Add},
+			{Type: token.Number, Value: 3},
+			{Type: token.Mul},
+			{Type: token.Number, Value: 4},
 		}},
 		{in: "2 + 3 * 4 ", want: []token.Token{
-			token.Number("2"),
-			token.Add,
-			token.Number("3"),
-			token.Mul,
-			token.Number("4"),
+			{Type: token.Number, Value: 2},
+			{Type: token.Add},
+			{Type: token.Number, Value: 3},
+			{Type: token.Mul},
+			{Type: token.Number, Value: 4},
 		}},
 	}
 
