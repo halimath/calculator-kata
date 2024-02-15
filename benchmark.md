@@ -13,7 +13,7 @@ insights.
 
 Lang | Real time [s] | User time [s] | Max. resident set size [bytes] | Peak memory footprint [bytes]
 -- | --: | --: | --: | --:
-Go | 0.28 | 0.27 | 9,895,936 | 8,684,352
+Go | 0.22 | 0.22 | 9,502,720 | 8,323,968
 Rust | 0.15 | 0.15 | 1,409,024 | 967,168
 
 # Go Implementation Benchmarks
@@ -23,7 +23,8 @@ processor with 16Gb ram using go 1.22.0.
 
 ## Implementation Strategies
 
-The results compare different implementation strategies:
+The results compare different implementation strategies. The strategies are
+explained below.
 
 ## Results
 
