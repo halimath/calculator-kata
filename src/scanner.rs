@@ -1,7 +1,7 @@
 use std::io::Read;
 use crate::token::*;
 
-pub type Result = std::io::Result<Token>;
+type Result = crate::error::Result<Token>;
 
 pub struct Scanner<R: std::io::Read> {
     r: std::io::BufReader<R>,
@@ -18,7 +18,7 @@ impl<R: std::io::Read> Scanner<R> {
             current: 0,
             next: 0,
             number_buffer: Vec::new(),
-            first_time: true, 
+            first_time: true,
         }
     }
 
@@ -27,7 +27,7 @@ impl<R: std::io::Read> Scanner<R> {
 
         let r = self.r.read(&mut buf)?;
 
-        self.current = self.next;    
+        self.current = self.next;
         if r == 0 {
             self.next = 0;
         } else {
@@ -37,27 +37,26 @@ impl<R: std::io::Read> Scanner<R> {
         Ok(())
     }
 
-    fn resolve_number(&mut self) -> Option<Result> {
-        if self.number_buffer.len() == 0 {
-            return None;
-        }
-
+    fn resolve_number(&mut self) -> Result {
         let b = self.number_buffer.clone();
         self.number_buffer.clear();
 
-        match String::from_utf8(b) {
-            Err(e) => Some(Err(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("Invalid utf8 bytes: {}", e),
-            ))),
-            Ok(s) => match s.parse::<f64>() {
-                Err(e) => Some(Err(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    format!("Invalid number: {}", e),
-                ))),
-                Ok(val) => Some(Ok(Token::Number(val))),
-            },
-        }
+        let val = String::from_utf8(b)?.parse::<f64>()?;
+        Ok(Token::Number(val))
+
+        // match String::from_utf8(b) {
+        //     Err(e) => Some(Err(std::io::Error::new(
+        //         std::io::ErrorKind::InvalidData,
+        //         format!("Invalid utf8 bytes: {}", e),
+        //     ))),
+        //     Ok(s) => match s.parse::<f64>() {
+        //         Err(e) => Some(Err(std::io::Error::new(
+        //             std::io::ErrorKind::InvalidData,
+        //             format!("Invalid number: {}", e),
+        //         ))),
+        //         Ok(val) => Some(Ok(Token::Number(val))),
+        //     },
+        // }
     }
 }
 
@@ -67,7 +66,7 @@ impl<R: std::io::Read> Iterator for Scanner<R> {
     fn next(&mut self) -> Option<Self::Item> {
         if self.first_time {
             if let Err(e) = self.advance() {
-                return Some(Err(e));
+                return Some(Err(e.into()));
             }
 
             self.first_time = false;
@@ -75,22 +74,22 @@ impl<R: std::io::Read> Iterator for Scanner<R> {
 
         loop {
             if let Err(e) = self.advance() {
-                return Some(Err(e));
+                return Some(Err(e.into()));
             }
 
             if self.current == 0 {
-                return None
+                return None;
             }
 
             match self.current {
-                b' ' | b'\t' | b'\r' | b'\n' => {                    
+                b' ' | b'\t' | b'\r' | b'\n' => {
                     if self.number_buffer.len() == 0 {
                         // Skip whitespace if there is nothing left in the number buffer.
                         continue;
                     }
                     // If the number buffer contains some chars, handle them.
-                    return self.resolve_number();
-                },
+                    return Some(self.resolve_number());
+                }
 
                 b'+' => return Some(Ok(Token::Operator(Operator::Add))),
                 b'-' => return Some(Ok(Token::Operator(Operator::Sub))),
@@ -102,15 +101,12 @@ impl<R: std::io::Read> Iterator for Scanner<R> {
                 x if (x >= b'0' && x <= b'9') || x == b'.' => {
                     self.number_buffer.push(x);
                     if (self.next < b'0' || self.next > b'9') && self.next != b'.' {
-                        return self.resolve_number();   
+                        return Some(self.resolve_number());
                     }
                 }
 
                 x => {
-                    return Some(Err(std::io::Error::new(
-                        std::io::ErrorKind::InvalidData,
-                        format!("unexpected input char: {x}"),
-                    )))
+                    return Some(Err(crate::error::Error::new(format!("unexpected input char: {x}"))));
                 }
             }
         }
@@ -156,12 +152,12 @@ mod tests {
     scanner_test! {operator_lparen, "(", Token::Parenthesis(Paren::Left)}
     scanner_test! {operator_rparen, ")", Token::Parenthesis(Paren::Right)}
     scanner_test! {operator_number, "2.34", Token::Number(2.34)}
-    scanner_test! {simple_expr_0, "2+3", 
+    scanner_test! {simple_expr_0, "2+3",
         Token::Number(2.0),
         Token::Operator(Operator::Add),
         Token::Number(3.0)
     }
-    scanner_test! {simple_expr_1, " 2   + 3  *  4  ", 
+    scanner_test! {simple_expr_1, " 2   + 3  *  4  ",
         Token::Number(2.0),
         Token::Operator(Operator::Add),
         Token::Number(3.0),
@@ -169,7 +165,7 @@ mod tests {
         Token::Number(4.0)
     }
 
-    scanner_test! {paren_expr, "2*(3+4)", 
+    scanner_test! {paren_expr, "2*(3+4)",
         Token::Number(2.0),
         Token::Operator(Operator::Mul),
         Token::Parenthesis(Paren::Left),
@@ -178,19 +174,4 @@ mod tests {
         Token::Number(4.0),
         Token::Parenthesis(Paren::Right)
     }
-
-
-    // #[test]
-    // fn test_scanner_iter() {
-    //     let b = "+".as_bytes();
-    //     let mut s = Scanner::<&[u8]>::new(b);
-    //     let v = s.next();
-    //     match v {
-    //         Some(r) => match r {
-    //             Ok(t) => assert_eq!(t, Token::Operator(Operator::Add)),
-    //             _ => assert!(false),
-    //         },
-    //         None => assert!(false),
-    //     }
-    // }
 }

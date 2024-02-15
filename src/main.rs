@@ -1,4 +1,5 @@
+use calc::eval;
 
 fn main() {
-    println!("Hello, world!");
+    println!("{:.5}", eval(std::io::stdin()).unwrap())
 }
