@@ -11,10 +11,11 @@ The results are obtained from running the resulting binaries (produced with
 optimizations applied) and using the standard unix `time` tool to generate
 insights.
 
-Lang | Real time [s] | User time [s] | Max. resident set size [bytes] | Peak memory footprint [bytes]
--- | --: | --: | --: | --:
-Go | 0.22 | 0.22 | 9,502,720 | 8,323,968
-Rust | 0.15 | 0.15 | 1,409,024 | 967,168
+Lang | Real time [s] | User time [s] | Max. resident set size [bytes] | Peak memory footprint [bytes] | LoC
+-- | --: | --: | --: | --: | --:
+Go | 0.22 | 0.22 | 9,502,720 | 8,323,968 | 566
+Rust | 0.15 | 0.15 | 1,409,024 | 967,168 | 393
+Python | 3.82 | 3.78 | 13,352,960 | 8,963,328 | 164
 
 # Go Implementation Benchmarks
 
